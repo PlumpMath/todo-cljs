@@ -1,5 +1,7 @@
-(ns todomvc.history
-  (:require [reagent.core :as reagent :refer [atom]]))
+(ns todos.history
+  ;; FIXME -- need a (chan) to make this work
+  ;; (:require [reagent.core :as reagent :refer [atom]])
+  )
 
 (enable-console-print!)
 
@@ -39,6 +41,7 @@
         (swap! history assoc :position newpos)
         (nth (:list @history) newpos)))
     todos))
+
 (defn fwd-history [todos]
   (let [newpos (dec (:position @history))]
     (if (< -1 newpos)

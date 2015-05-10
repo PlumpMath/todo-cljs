@@ -1,14 +1,29 @@
-(ns todomvc
-  (:require [reagent.core :as reagent :refer [atom]]
-            [todomvc.history :as hx :refer [history capacity]]))
+(ns todos.core
+  (:require-macros [cljs.core.async.macros :refer [go]]
+                   [hiccups.core :as hiccups])
+  (:require [goog.dom :as dom]
+            [goog.events :as events]
+            [cljs.core.async :refer [put! chan <!]]
+            [clojure.string :refer [lower-case]]
+            [hiccups.runtime :as hiccupsrt]
+            [todos.utils :as utils]
+            [todos.history :as hx :refer [history capacity]])
+  (:import [goog.net Jsonp]
+           [goog.net XhrIo]
+           [goog Uri]))
 
 (enable-console-print!)
+(println "Hello.")
+;; (.log js/console (dom/getElement "query"))
 
 (def todos (atom (sorted-map)))
 (def counter (atom 0))
-
 ;;(def history (atom {:position 0 :list (list @todos)}))
 (swap! history assoc :list (list @todos))
+;;
+;; FIXME:
+(def app-state {:todos todos :counter counter :history history})
+
 
 (defn add-todo [text]
   (let [id (swap! counter inc)]
@@ -56,8 +71,12 @@
                                     27 (stop)
                                     nil)})])))
 
-(def todo-edit (with-meta todo-input
-                 {:component-did-mount #(.focus (reagent/dom-node %))}))
+(def todo-edit
+  ;; FIXME
+  ;; (with-meta todo-input {:component-did-mount #(.focus
+  ;; (reagent/dom-node%))})
+  nil
+  )
 
 (defn todo-stats [{:keys [filt active done]}]
   (let [props-for (fn [name]
@@ -105,25 +124,47 @@
            (if (< 0 (:position @history))
              [:button#redo {:on-click #(redo)} "redo"]
              [:button#redo-off "redo"])
-           [todo-input {:id "new-todo"
-                        :placeholder "What needs to be done?"
-                        :on-save add-todo}]]
-          (when (-> items count pos?)
-            [:div
-             [:section#main
-              [:input#toggle-all {:type "checkbox" :checked (zero? active)
-                                  :on-change #(complete-all (pos? active))}]
-              [:label {:for "toggle-all"} "Mark all as complete"]
-              [:ul#todo-list
-               (for [todo (filter (case @filt
-                                    :active (complement :done)
-                                    :done :done
-                                    :all identity) items)]
-                 ^{:key (:id todo)} [todo-item todo])]]
-             [:footer#footer
-              [todo-stats {:active active :done done :filt filt}]]])]
-         [:footer#info
-          [:p "Double-click to edit a todo"]]]))))
+           
+           ;; [todo-input {:id "new-todo"
+           (todo-input {:id "new-todo"
+                          :placeholder "What needs to be done?"
+                        :on-save add-todo})
+           ;; ]
+           
+           (when (-> items count pos?)
+             [:div
+              [:section#main
+               [:input#toggle-all {:type "checkbox" :checked (zero? active)
+                                   :on-change #(complete-all (pos? active))}]
+               [:label {:for "toggle-all"} "Mark all as complete"]
+               [:ul#todo-list
+                (for [todo (filter (case @filt
+                                     :active (complement :done)
+                                     :done :done
+                                     :all identity) items)]
+                  ^{:key (:id todo)}                  
+                  ;; [todo-item todo]
+                  (let [item-fn (todo-item)]
+                    (item-fn todo)))]
+               [:footer#footer
+                ;; [todo-stats
+                (todo-stats               
+                 {:active active :done done :filt filt})
+                ]]])]]
+           [:footer#info
+            [:p "Double-click to edit a todo"]]]))))
 
-(defn ^:export run []
-  (reagent/render-component [todo-app] (.-body js/document)))
+;; setup
+(defn init [] "initialize dynamic page data"
+  ;; dynamic html
+  (let [body-el (dom/getElement "content")
+        content-fn (todo-app app-state)
+        content (content-fn)] 
+    (aset body-el "innerHTML" (hiccups/html content))))
+
+(comment
+  ;;   (defn ^:export run [] (reagent/render-component [todo-app]
+  (.-body js/document))
+
+;; RUN...
+(init)
