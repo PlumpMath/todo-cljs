@@ -1,18 +1,27 @@
 (ns todomvc
   (:require [reagent.core :as reagent :refer [atom]]
-            [todomvc.history :as hx :refer [history capacity]]))
+            [todomvc.history :as hx :refer [history capacity]]
+            [todomvc.magic :as magic]))
 
 (enable-console-print!)
 
 (def todos (atom (sorted-map)))
-(def counter (atom 0))
+(def state {:counter (atom 0) :titles #{} })
 
 ;;(def history (atom {:position 0 :list (list @todos)}))
+
 (swap! history assoc :list (list @todos))
 
 (defn add-todo [text]
-  (let [id (swap! counter inc)]
-    (hx/add-history (swap! todos assoc id {:id id :title text :done false}))))
+  (if (contains? (:titles state) text)
+    (println (str "dupe:" text))
+    (doseq [title (magic/expand text)]
+      (doall
+       (println (str "title=" title))
+       (let [id (swap! (:counter state) inc)]
+         (hx/add-history
+          (swap! todos assoc id {:id id :title title :done false})))))))
+
 (defn toggle [id]
   (hx/add-history (swap! todos update-in [id :done] not)))
 (defn save [id title]
