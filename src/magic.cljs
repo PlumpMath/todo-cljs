@@ -1,34 +1,57 @@
 (ns todomvc.magic
   (:require [clojure.string :refer [split-lines]]
+            [todomvc.palin :as palin]
             ))
 
-;; forward declare the big hash
 (declare todo-learn-clojure-core)
 
-(defn expand "Maybe expand key into multiple items"
-  [in]
-  (let [items (if (> 2 (.length in))
-                ;;                (palin/process in)
-                (list "todo")
-                (todo-learn-clojure-core in))]
-    (if (nil? items)      
-       ;; (println (str "key=" key)) ;; debug
-      (list in)
-      (mapcat split-lines items))))
+(defn- split-items "private" [items-string]
+  (split-lines items-string)
+  )
 
-(defn todo-palindrome-big
-  "SPLIT into all palindromes arranged by decreasing size"
-  [input]
-  (let [items (palin/process input)]
-    (if (nil? items)
-      (list input)
-      (mapcat split-lines items))))
+(defn expand "Maybe expand key into multiple items" [key]
+  (let [vect (todo-learn-clojure-core key)]
+    (if (nil? vect)
+      (let [vect (palin/find-all key)]
+        (if (nil? vect)
+          (list key)
+          vect))
+      (mapcat split-lines vect))
+    )
+  )
 
-(defn todo-learn-clojure-core "VARS IN CLOJURE.CORE"
-  [key]
+(comment (def todo-learn-clojure-namespaces "clojure" "core
+async
+logic
+data
+edn
+inspector
+instant
+java
+browse
+io
+javadoc
+shell
+main
+pprint
+reflect
+repl
+set
+stacktrace
+string
+template
+test
+walk
+xml
+zip
+clojure.core
+"))
+
+
+(defn todo-learn-clojure-core "VARS IN CLOJURE.CORE" [key]
   (get
    {
-        "*" [ "Learn Clojure '*'" "*
+        "*^%" [ "*
 Returns the product of nums. (*) returns 1. Does not auto-promote longs, will throw on overflow. See also: *'
 *'
 Returns the product of nums. (*) returns 1. Supports arbitrary precision. See also: *
@@ -140,7 +163,7 @@ Returns non-nil if nums all have the equivalent value (type-independent), otherw
 Returns non-nil if nums are in monotonically decreasing order, otherwise false.
 >=
 Returns non-nil if nums are in monotonically non-increasing order, otherwise false."]
-        "a" ["Learn Clojure 'a'" "accessor
+        "a" ["accessor
 Returns a fn that, given an instance of a structmap with the basis, returns the value at the key. The key must be in the basis. The returned function should be (slightly) more efficient than using get, but such use of accessors should be limited to known performance-critical areas.
 aclone
 Returns a clone of the Java array. Works on arrays of known types.
@@ -218,7 +241,7 @@ await-for
 Blocks the current thread until all actions dispatched thus far (from this thread or agent) to the agents have occurred, or the timeout (in milliseconds) has elapsed. Returns logical false if returning due to timeout, logical true otherwise.
 await1
 no doc"]
-        "b" ["Learn Clojure 'b'" "bases
+        "b" ["bases
 Returns the immediate superclass and direct interfaces of c, if any
 bean
 Takes a Java object and returns a read-only implementation of the map abstraction based upon its JavaBean properties.
@@ -272,7 +295,7 @@ byte-array
 Creates an array of bytes
 bytes
 Casts to bytes[]"]
-        "c" ["Learn Clojure 'c'" "case
+        "c" ["case
 Takes an expression, and a set of clauses. Each clause can take the form of either: test-constant result-expr (test-constant1 ... test-constantN) result-expr The test-constants are not evaluated. They must be compile-time literals, and need not be quoted. If the expression is equal to a test-constant, the corresponding result-expr is returned. A single default expression can follow the clauses, and its value will be returned if no clause matches. If no default expression is provided and no clause matches, an IllegalArgumentException is thrown. Unlike cond and condp, case does a constant-time dispatch, the clauses are not considered sequentially. All manner of constant expressions are acceptable in case, including numbers, strings, symbols, keywords, and (Clojure) composites thereof. Note that since lists are used to group multiple constants that map to the same expression, a vector can be used to match a list if needed. The test-constants need not be all of the same type.
 cast
 Throws a ClassCastException if x is not a c, else returns x.
@@ -364,7 +387,7 @@ create-struct
 Returns a structure basis object.
 cycle
 Returns a lazy (infinite!) sequence of repetitions of the items in coll."]
-        "d" [ "Learn Clojure 'd'" "dec
+        "d" [ "dec
 Returns a number one less than num. Does not auto-promote longs, will throw on overflow. See also: dec'
 dec'
 Returns a number one less than num. Supports arbitrary precision. See also: dec
@@ -454,7 +477,7 @@ drop-last
 Return a lazy sequence of all but the last n (default 1) items in coll
 drop-while
 Returns a lazy sequence of the items in coll starting from the first item for which (pred item) returns logical false."]
-        "e" [ "Learn Clojure 'e'" "empty
+        "e" [ "empty
 Returns an empty collection of the same category as coll, or nil
 EMPTY-NODE
 no doc
@@ -490,7 +513,7 @@ extenders
 Returns a collection of the types explicitly extending protocol
 extends?
 Returns true if atype extends protocol"]
-        "f" [ "Learn Clojure 'f'" "false?
+        "f" [ "false?
 Returns true if x is the value false, false otherwise.
 ffirst
 Same as (first (first x))
@@ -556,7 +579,7 @@ future-done?
 Returns true if future f is done
 future?
 Returns true if x is a future"]
-        "g" [ "Learn Clojure 'g'" "gen-class
+        "g" [ "gen-class
 When compiling, generates compiled bytecode for a class with the given package-qualified :name (which, as all names in these parameters, can be a string or symbol), and writes the .class file to the *compile-path* directory. When not compiling, does nothing. The gen-class construct contains no implementation, as the implementation will be dynamically sought by the generated class in functions in an implementing Clojure namespace. Given a generated class org.mydomain.MyClass with a method named mymethod, gen-class will generate an implementation that looks for a function named by (str prefix mymethod) (default prefix: \"-\") in a Clojure namespace specified by :impl-ns (defaults to the current namespace). All inherited methods, generated methods, and init and main functions (see :methods, :init, and :main below) will be found similarly prefixed. By default, the static initializer for the generated class will attempt to load the Clojure support code for the class as a resource from the classpath, e.g. in the example case, ``org/mydomain/MyClass__init.class``. This behavior can be controlled by :load-impl-ns Note that methods with a maximum of 18 parameters are supported. In all subsequent sections taking types, the primitive types can be referred to by their Java names (int, float etc), and classes in the java.lang package can be used without a package qualifier. All other classes must be fully qualified. Options should be a set of key/value pairs, all except for :name are optional: :name aname The package-qualified name of the class to be generated :extends aclass Specifies the superclass, the non-private methods of which will be overridden by the class. If not provided, defaults to Object. :implements [interface ...] One or more interfaces, the methods of which will be implemented by the class. :init name If supplied, names a function that will be called with the arguments to the constructor. Must return [ [superclass-constructor-args] state] If not supplied, the constructor args are passed directly to the superclass constructor and the state will be nil :constructors {[param-types] [super-param-types], ...} By default, constructors are created for the generated class which match the signature(s) of the constructors for the superclass. This parameter may be used to explicitly specify constructors, each entry providing a mapping from a constructor signature to a superclass constructor signature. When you supply this, you must supply an :init specifier. :post-init name If supplied, names a function that will be called with the object as the first argument, followed by the arguments to the constructor. It will be called every time an object of this class is created, immediately after all the inherited constructors have completed. It's return value is ignored. :methods [ [name [param-types] return-type], ...] The generated class automatically defines all of the non-private methods of its superclasses/interfaces. This parameter can be used to specify the signatures of additional methods of the generated class. Static methods can be specified with ^{:static true} in the signature's metadata. Do not repeat superclass/interface signatures here. :main boolean If supplied and true, a static public main function will be generated. It will pass each string of the String[] argument as a separate argument to a function called (str prefix main). :factory name If supplied, a (set of) public static factory function(s) will be created with the given name, and the same signature(s) as the constructor(s). :state name If supplied, a public final instance field with the given name will be created. You must supply an :init function in order to provide a value for the state. Note that, though final, the state can be a ref or agent, supporting the creation of Java objects with transactional or asynchronous mutation semantics. :exposes {protected-field-name {:get name :set name}, ...} Since the implementations of the methods of the generated class occur in Clojure functions, they have no access to the inherited protected fields of the superclass. This parameter can be used to generate public getter/setter methods exposing the protected field(s) for use in the implementation. :exposes-methods {super-method-name exposed-name, ...} It is sometimes necessary to call the superclass' implementation of an overridden method. Those methods may be exposed and referred in the new method implementation by a local name. :prefix string Default: \"-\" Methods called e.g. Foo will be looked up in vars called prefixFoo in the implementing ns. :impl-ns name Default: the name of the current ns. Implementations of methods will be looked up in this namespace. :load-impl-ns boolean Default: true. Causes the static initializer for the generated class to reference the load code for the implementing namespace. Should be true when implementing-ns is the default, false if you intend to load the code via some other method.
 gen-interface
 When compiling, generates compiled bytecode for an interface with the given package-qualified :name (which, as all names in these parameters, can be a string or symbol), and writes the .class file to the *compile-path* directory. When not compiling, does nothing. In all subsequent sections taking types, the primitive types can be referred to by their Java names (int, float etc), and classes in the java.lang package can be used without a package qualifier. All other classes must be fully qualified. Options should be a set of key/value pairs, all except for :name are optional: :name aname The package-qualified name of the class to be generated :extends [interface ...] One or more interfaces, which will be extended by this interface. :methods [ [name [param-types] return-type], ...] This parameter is used to specify the signatures of the methods of the generated interface. Do not repeat superinterface signatures here.
@@ -576,7 +599,7 @@ get-validator
 Gets the validator-fn for a var/ref/agent/atom.
 group-by
 Returns a map of the elements of coll keyed by the result of f on each element. The value at each key will be a vector of the corresponding elements, in the order they appeared in coll."]
-        "h" [ "Learn Clojure 'h'"  "hash
+        "h" [ "hash
 Returns the hash code of its argument. Note this is the hash code consistent with =, and thus is different than .hashCode for Integer, Short, Byte and Clojure collections.
 hash-combine
 no doc
@@ -588,7 +611,7 @@ hash-set
 Returns a new hash set with supplied keys. Any equal keys are handled as if by repeated uses of conj.
 hash-unordered-coll
 Returns the hash code, consistent with =, for an external unordered collection implementing Iterable. For maps, the iterator should return map entries whose hash is computed as (hash-ordered-coll [k v]). See http://clojure.org/data_structures#hash for full algorithms."]
-        "i" [ "Learn Clojure 'i'" "identical?
+        "i" [ "identical?
 Tests if 2 arguments are the same object
 identity
 Returns its argument.
@@ -640,9 +663,9 @@ iterate
 Returns a lazy sequence of x, (f x), (f (f x)) etc. f must be free of side-effects
 iterator-seq
 Returns a seq on a java.util.Iterator. Note that most collections providing iterators implement Iterable and thus support seq directly."]
-        "j" [ "Learn Clojure 'j'" "juxt
+        "j" [ "juxt
 Takes a set of functions and returns a fn that is the juxtaposition of those fns. The returned fn takes a variable number of args, and returns a vector containing the result of applying each fn to the args (left-to-right). ((juxt a b c) x) => [(a x) (b x) (c x)]"]
-        "k" [ "Learn Clojure 'k'" "keep
+        "k" [ "keep
 Returns a lazy sequence of the non-nil results of (f item). Note, this means false return values will be included. f must be free of side-effects.
 keep-indexed
 Returns a lazy sequence of the non-nil results of (f index item). Note, this means false return values will be included. f must be free of side-effects.
@@ -654,7 +677,7 @@ keyword
 Returns a Keyword with the given namespace and name. Do not use : in the keyword strings, it will be added automatically.
 keyword?
 Return true if x is a Keyword"]
-        "l" [ "Learn Clojure 'l'" "last
+        "l" [ "last
 Return the last item in coll, in linear time
 lazy-cat
 Expands to code which yields a lazy sequence of the concatenation of the supplied colls. Each coll expr is not evaluated until it is needed. (lazy-cat xs ys zs) === (concat (lazy-seq xs) (lazy-seq ys) (lazy-seq zs))
@@ -692,7 +715,7 @@ longs
 Casts to long[]
 loop
 Evaluates the exprs in a lexical context in which the symbols in the binding-forms are bound to their respective init-exprs or parts therein. Acts as a recur target."]
-        "m" [ "Learn Clojure 'm'" "macroexpand
+        "m" [ "macroexpand
 Repeatedly calls macroexpand-1 on form until it no longer represents a macro form, then returns it. Note neither macroexpand-1 nor macroexpand expand macros in subforms.
 macroexpand-1
 If form represents a macro form, returns its expansion, else returns form.
@@ -738,7 +761,7 @@ mod
 Modulus of num and div. Truncates toward negative infinity.
 munge
 no doc"]
-        "n" [ "Learn Clojure 'n'" "name
+        "n" [ "name
 Returns the name String of a string, symbol or keyword.
 namespace
 Returns the namespace String of a symbol or keyword, or nil if not present.
@@ -800,13 +823,13 @@ number?
 Returns true if x is a Number
 numerator
 Returns the numerator part of a Ratio."]
-        "o" [ "Learn Clojure 'o'" "object-array
+        "o" [ "object-array
 Creates an array of objects
 odd?
 Returns true if n is odd, throws an exception if n is not an integer
 or
 Evaluates exprs one at a time, from left to right. If a form returns a logical true value, or returns that value and doesn't evaluate any of the other expressions, otherwise it returns the value of the last expression. (or) returns nil."]
-        "p" [ "Learn Clojure 'p'" "parents
+        "p" [ "parents
 Returns the immediate parents of tag, either via a Java type inheritance relationship or a relationship established via derive. h must be a hierarchy obtained from make-hierarchy, if not supplied defaults to the global hierarchy
 partial
 Takes a function f and fewer than the normal arguments to f, and returns a fn that takes a variable number of additional args. When called, the returned function calls f with args + additional args.
@@ -880,11 +903,11 @@ push-thread-bindings
 WARNING: This is a low-level function. Prefer high-level macros like binding where ever possible. Takes a map of Var/value pairs. Binds each Var to the associated value for the current thread. Each call *MUST* be accompanied by a matching call to pop-thread-bindings wrapped in a try-finally! (push-thread-bindings bindings) (try ... (finally (pop-thread-bindings)))
 pvalues
 Returns a lazy sequence of the values of the exprs, which are evaluated in parallel"]
-        "q" [ "Learn Clojure 'q'" "quot
+        "q" [ "quot
 quot[ient] of dividing numerator by denominator.
 quote
 Yields the unevaluated form. See http://clojure.org/special_forms for more information."]
-        "r" [ "Learn Clojure 'r'" "rand
+        "r" [ "rand
 Returns a random floating point number between 0 (inclusive) and n (default 1) (exclusive).
 rand-int
 Returns a random integer between 0 (inclusive) and n (exclusive).
@@ -992,7 +1015,7 @@ rseq
 Returns, in constant time, a seq of the items in rev (which can be a vector or sorted-map), in reverse order. If rev is empty returns nil
 rsubseq
 sc must be a sorted collection, test(s) one of <, <=, > or >=. Returns a reverse seq of those entries with keys ek for which (test (.. sc comparator (compare ek key)) 0) is true"]
-        "s" [ "Learn Clojure 's'" "satisfies?
+        "s" [ "satisfies?
 Returns true if x satisfies the protocol
 second
 Same as (first (next x))
@@ -1098,7 +1121,7 @@ symbol?
 Return true if x is a Symbol
 sync
 transaction-flags => TBD, pass nil for now Runs the exprs (in an implicit do) in a transaction that encompasses exprs and any nested calls. Starts a transaction if none is already running on this thread. Any uncaught exception will abort the transaction and flow out of sync. The exprs may be run more than once, but any effects on Refs will be atomic."]
-        "t" [ "Learn Clojure 't'" "take
+        "t" [ "take
 Returns a lazy sequence of the first n items in coll, or all items if there are fewer than n.
 take-last
 Returns a seq of the last n items in coll. Depending on the type of coll may be no better than linear time. For vectors, see also subvec.
@@ -1132,7 +1155,7 @@ try
 The exprs are evaluated and, if no exceptions occur, the value of the last is returned. If an exception occurs and catch clauses are provided, each is examined in turn and the first for which the thrown exception is an instance of the named class is considered a matching catch clause. If there is a matching catch clause, its exprs are evaluated in a context in which name is bound to the thrown exception, and the value of the last is the return value of the function. If there is no matching catch clause, the exception propagates out of the function. Before returning, normally or abnormally, any finally exprs will be evaluated for their side effects. See http://clojure.org/special_forms for more information.
 type
 Returns the :type metadata of x, or its Class if none"]
-        "u" [ "Learn Clojure 'u'" "unchecked-add
+        "u" [ "unchecked-add
 Returns the sum of x and y, both long. Note - uses a primitive operator subject to overflow.
 unchecked-add-int
 Returns the sum of x and y, both int. Note - uses a primitive operator subject to overflow.
@@ -1188,7 +1211,7 @@ update-proxy
 Takes a proxy instance and a map of strings (which must correspond to methods of the proxy superclass/superinterfaces) to fns (which must take arguments matching the corresponding method, plus an additional (explicit) first arg corresponding to this, and updates (via assoc) the proxy's fn map. nil can be passed instead of a fn, in which case the corresponding method will revert to the default behavior. Note that this function can be used to update the behavior of an existing instance without changing its identity. Returns the proxy.
 use
 Like 'require, but also refers to each lib's namespace using clojure.core/refer. Use :use in the ns macro in preference to calling this directly. 'use accepts additional options in libspecs: :exclude, :only, :rename. The arguments and semantics for :exclude, :only, and :rename are the same as those documented for clojure.core/refer."]
-        "v" [ "Learn Clojure 'v'" "val
+        "v" [ "val
 Returns the value in the map entry.
 vals
 Returns a sequence of the map's values, in the same order as (seq map).
@@ -1210,7 +1233,7 @@ vector-of
 Creates a new vector of a single primitive type t, where t is one of :int :long :float :double :byte :short :char or :boolean. The resulting vector complies with the interface of vectors in general, but stores the values unboxed internally. Optionally takes one or more elements to populate the vector.
 vector?
 Return true if x implements IPersistentVector"]
-        "w" [ "Learn Clojure 'w'" "when
+        "w" [ "when
 Evaluates test. If logical true, evaluates body in an implicit do.
 when-first
 bindings => x xs Roughly the same as (when (seq xs) (let [x (first xs)] body)) but xs is evaluated only once
@@ -1244,39 +1267,12 @@ with-redefs
 binding => var-symbol temp-value-expr Temporarily redefines Vars while executing the body. The temp-value-exprs will be evaluated and each resulting value will replace in parallel the root value of its Var. After the body is executed, the root values of all the Vars will be set back to their old values. These temporary changes will be visible in all threads. Useful for mocking out functions during testing.
 with-redefs-fn
 Temporarily redefines Vars during a call to func. Each val of binding-map will replace the root value of its key which must be a Var. After func is called with no args, the root values of all the Vars will be set back to their old values. These temporary changes will be visible in all threads. Useful for mocking out functions during testing."]
-        "x" [ "Learn Clojure 'x'"  "xml-seq
+        "x" [ "xml-seq
 A tree seq on the xml elements as per xml/parse"]
-        "z" [ "Learn Clojure 'z'"  "zero?
+        "z" [ "zero?
 Returns true if num is zero, else false
 zipmap
 Returns a map with the keys mapped to the corresponding vals."]
         }
    key
 ))
-
-(comment (def todo-learn-clojure-namespaces "clojure" "core
-async
-logic
-data
-edn
-inspector
-instant
-java
-browse
-io
-javadoc
-shell
-main
-pprint
-reflect
-repl
-set
-stacktrace
-string
-template
-test
-walk
-xml
-zip
-clojure.core
-"))

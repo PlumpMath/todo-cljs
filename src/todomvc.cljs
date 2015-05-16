@@ -18,7 +18,7 @@
     (println (str "dupe:" text))    
     (let [titles (magic/expand text)
           local (atom nil)]
-     (doseq [title (magic/expand text)]
+     (doseq [title titles]
        (let [id (swap! (:counter state) inc)]
          (reset! local
                 (swap! todos assoc id {:id id :title title :done false}))))
