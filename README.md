@@ -11,3 +11,20 @@ structures.”
 --Alan J. Perlis
 
 
+=== Added: ===
+
+* history (undo/redo) @ 12/14
+* magic @ 05/14
+ - expansion of learn-clojure on key/letter -
+* palindrome - 05/15
+
+=== TODOs: ===
+
+* Make palindrome controlled
+ - html/css -
+
+=== Failed experiments: ===
+* Convert to core.async (after react, you can't go back...)
+
+=== Future experiments: ===
+* Re-implement using Om?
