@@ -6,6 +6,7 @@
 (enable-console-print!)
 
 (def todos (atom (sorted-map)))
+
 (def state {:counter (atom 0) :titles #{} })
 
 ;;(def history (atom {:position 0 :list (list @todos)}))
@@ -14,13 +15,14 @@
 
 (defn add-todo [text]
   (if (contains? (:titles state) text)
-    (println (str "dupe:" text))
-    (doseq [title (magic/expand text)]
-      (doall
-       (println (str "title=" title))
+    (println (str "dupe:" text))    
+    (let [titles (magic/expand text)
+          local (atom nil)]
+     (doseq [title (magic/expand text)]
        (let [id (swap! (:counter state) inc)]
-         (hx/add-history
-          (swap! todos assoc id {:id id :title title :done false})))))))
+         (reset! local
+                (swap! todos assoc id {:id id :title title :done false}))))
+     (hx/add-history @local))))
 
 (defn toggle [id]
   (hx/add-history (swap! todos update-in [id :done] not)))

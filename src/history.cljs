@@ -4,7 +4,7 @@
 (enable-console-print!)
 
 (def history (atom {:position 0 :list (list)}))
-(def capacity 50)
+(def capacity 500)
 
 (defn more-history [history]
   (let [pos (:position history) size (-> history :list count)]
